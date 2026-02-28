@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"fmt"
 	"math"
 	"strings"
 	"testing"
@@ -197,5 +198,37 @@ func TestRTrimSlice(t *testing.T) {
 				t.Errorf("RTrimSlice(%v, %d) = %v; want %v", testcase.input, testcase.trimLen, result, testcase.expected)
 			}
 		})
+	}
+}
+
+// Define the where function for testing
+func where() string {
+	return FileWithLineNum()
+}
+
+func TestFileWithLineNum(t *testing.T) {
+	// 1. Test direct call scenario
+	actual := where()
+	fmt.Println(actual)
+
+	// Expected result: Should output the correct line number of the caller.
+	// Since I cannot dynamically determine the exact line number easily,
+	// I hardcoded it based on my local setup for verification.
+	expectedFile := "utils_test.go"
+	// NOTE: Update line numbers (e.g., :211) to match your environment
+	if !strings.Contains(actual, expectedFile+":211") {
+		t.Errorf("Expected file path to contain %s, but got %s", expectedFile+":211", actual)
+	}
+
+	// 2. Test closure call scenario
+	var closureResult string
+	func() {
+		closureResult = FileWithLineNum()
+	}()
+
+	fmt.Println(closureResult)
+	// NOTE: Update line numbers (e.g., :227) to match your environment
+	if !strings.Contains(closureResult, expectedFile+":227") {
+		t.Errorf("Expected closure result to contain %s, but got %s", expectedFile+":227", closureResult)
 	}
 }

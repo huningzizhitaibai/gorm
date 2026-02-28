@@ -54,9 +54,17 @@ func CallerFrame() runtime.Frame {
 
 // FileWithLineNum return the file name and line number of the current file
 func FileWithLineNum() string {
-	frame := CallerFrame()
-	if frame.PC != 0 {
-		return string(strconv.AppendInt(append([]byte(frame.File), ':'), int64(frame.Line), 10))
+	pcs := [13]uintptr{}
+	// the third caller usually from gorm internal
+	len := runtime.Callers(3, pcs[:])
+	frames := runtime.CallersFrames(pcs[:len])
+	for i := 0; i < len; i++ {
+		// second return value is "more", not "ok"
+		frame, _ := frames.Next()
+		if (!strings.HasPrefix(frame.File, gormSourceDir) ||
+			strings.HasSuffix(frame.File, "_test.go")) && !strings.HasSuffix(frame.File, ".gen.go") {
+			return string(strconv.AppendInt(append([]byte(frame.File), ':'), int64(frame.Line), 10))
+		}
 	}
 
 	return ""
