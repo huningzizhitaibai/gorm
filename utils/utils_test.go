@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -207,28 +208,13 @@ func where() string {
 }
 
 func TestFileWithLineNum(t *testing.T) {
-	// 1. Test direct call scenario
-	actual := where()
-	fmt.Println(actual)
+	_, _, expectedLine, _ := runtime.Caller(0)
+	actual := where() // Called from next line
+	expectedLine++    // where() is called one line after Caller(0)
 
-	// Expected result: Should output the correct line number of the caller.
-	// Since I cannot dynamically determine the exact line number easily,
-	// I hardcoded it based on my local setup for verification.
 	expectedFile := "utils_test.go"
-	// NOTE: Update line numbers (e.g., :211) to match your environment
-	if !strings.Contains(actual, expectedFile+":211") {
-		t.Errorf("Expected file path to contain %s, but got %s", expectedFile+":211", actual)
-	}
-
-	// 2. Test closure call scenario
-	var closureResult string
-	func() {
-		closureResult = FileWithLineNum()
-	}()
-
-	fmt.Println(closureResult)
-	// NOTE: Update line numbers (e.g., :227) to match your environment
-	if !strings.Contains(closureResult, expectedFile+":227") {
-		t.Errorf("Expected closure result to contain %s, but got %s", expectedFile+":227", closureResult)
+	expectedStr := fmt.Sprintf("%s:%d", expectedFile, expectedLine)
+	if !strings.Contains(actual, expectedStr) {
+		t.Errorf("Expected %s, but got %s", expectedStr, actual)
 	}
 }
